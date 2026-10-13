@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "Home Appliance Rental Marketplace (NFR v3.0)",
   "scripts": {
-    "server": "cd backend && node src/server.js",
+    "postinstall": "cd backend && npm install && cd ../frontend && npm install",
+    "build": "cd frontend && npm install && npm run build && cd ../backend && npm install",
+    "start": "node backend/src/server.js",
+    "server": "node backend/src/server.js",
     "client": "cd frontend && npm run dev",
-    "build": "cd frontend && npm run build",
-    "start": "cd backend && node src/server.js",
     "dev": "npx concurrently \"npm run server\" \"npm run client\"",
     "test": "node scripts/test-flows.js"
   },
