@@ -41,6 +41,9 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAppliance, setSelectedAppliance] = useState(null);
+  const [modalPlan, setModalPlan] = useState('daily'); // 'daily' | 'weekly' | 'monthly'
+  const [modalDuration, setModalDuration] = useState(3);
+  const [cardPlanSelections, setCardPlanSelections] = useState({}); // { [appId]: 'daily' | 'weekly' | 'monthly' }
 
   // Cart & Calculation
   const [cart, setCart] = useState([
@@ -313,6 +316,12 @@ export default function App() {
     if (!cart.length) return;
     const newDuration = Math.max(1, cart[0].duration + delta);
     setCart([{ ...cart[0], duration: newDuration }]);
+  };
+
+  const updateCartPlan = (newPlan) => {
+    if (!cart.length) return;
+    const defaultDur = newPlan === 'daily' ? 3 : 1;
+    setCart([{ ...cart[0], plan: newPlan, duration: defaultDur }]);
   };
 
   const removeFromCart = (index) => {
@@ -868,39 +877,105 @@ export default function App() {
                         {app.title}
                       </h3>
 
+                      {/* Selectable Rental Plan Options: Days, Weeks, Months */}
+                      <div style={{ marginBottom: '0.85rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                          <span style={{ fontSize: '0.74rem', fontWeight: 600, color: 'var(--text-dim)' }}>Choose Rental Plan:</span>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--teal-400)', fontWeight: 700 }}>
+                            {(cardPlanSelections[app.id] || 'daily').toUpperCase()} OPTION
+                          </span>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.35rem' }}>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCardPlanSelections({ ...cardPlanSelections, [app.id]: 'daily' });
+                            }}
+                            style={{
+                              padding: '0.45rem 0.2rem', borderRadius: '6px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.15s',
+                              background: (cardPlanSelections[app.id] || 'daily') === 'daily' ? 'rgba(20, 184, 166, 0.25)' : 'rgba(15, 23, 42, 0.7)',
+                              border: (cardPlanSelections[app.id] || 'daily') === 'daily' ? '1.5px solid var(--teal-500)' : '1px solid var(--border-subtle)',
+                              color: (cardPlanSelections[app.id] || 'daily') === 'daily' ? 'var(--teal-400)' : 'var(--text-muted)'
+                            }}
+                          >
+                            <div style={{ fontSize: '0.66rem', fontWeight: 700 }}>📅 Days</div>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 800 }}>₹{app.daily_rate}/d</div>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCardPlanSelections({ ...cardPlanSelections, [app.id]: 'weekly' });
+                            }}
+                            style={{
+                              padding: '0.45rem 0.2rem', borderRadius: '6px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.15s',
+                              background: cardPlanSelections[app.id] === 'weekly' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(15, 23, 42, 0.7)',
+                              border: cardPlanSelections[app.id] === 'weekly' ? '1.5px solid #6366f1' : '1px solid var(--border-subtle)',
+                              color: cardPlanSelections[app.id] === 'weekly' ? '#a5b4fc' : 'var(--text-muted)'
+                            }}
+                          >
+                            <div style={{ fontSize: '0.66rem', fontWeight: 700 }}>📆 Weeks</div>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 800 }}>₹{app.weekly_rate}/wk</div>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCardPlanSelections({ ...cardPlanSelections, [app.id]: 'monthly' });
+                            }}
+                            style={{
+                              padding: '0.45rem 0.2rem', borderRadius: '6px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.15s',
+                              background: cardPlanSelections[app.id] === 'monthly' ? 'rgba(20, 184, 166, 0.25)' : 'rgba(15, 23, 42, 0.7)',
+                              border: cardPlanSelections[app.id] === 'monthly' ? '1.5px solid var(--teal-500)' : '1px solid var(--border-subtle)',
+                              color: cardPlanSelections[app.id] === 'monthly' ? 'var(--teal-400)' : 'var(--text-muted)'
+                            }}
+                          >
+                            <div style={{ fontSize: '0.66rem', fontWeight: 700 }}>🗓️ Months</div>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 800 }}>₹{app.monthly_rate}/mo</div>
+                          </button>
+                        </div>
+                      </div>
+
                       {/* Financial breakdown pill (NFR Rule highlight) */}
                       <div style={{
-                        background: 'rgba(15, 23, 42, 0.7)', padding: '0.75rem', borderRadius: 'var(--radius-sm)',
-                        marginBottom: '1rem', border: '1px solid var(--border-subtle)', fontSize: '0.8rem'
+                        background: 'rgba(15, 23, 42, 0.7)', padding: '0.65rem 0.75rem', borderRadius: 'var(--radius-sm)',
+                        marginBottom: '1rem', border: '1px solid var(--border-subtle)', fontSize: '0.78rem'
                       }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-                          <span style={{ color: 'var(--text-dim)' }}>Monthly Rent:</span>
-                          <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>₹{app.monthly_rate.toLocaleString()}/mo</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
                           <span style={{ color: 'var(--text-dim)' }}>Platform Fee (15% MV):</span>
                           <span style={{ color: 'var(--teal-400)' }}>₹{(app.market_value * 0.15).toLocaleString()}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                           <span style={{ color: 'var(--text-dim)' }}>Escrow Deposit (20% MV):</span>
-                          <span style={{ color: '#a5b4fc', fontWeight: 600 }}>₹{(app.market_value * 0.20).toLocaleString()} <span style={{ fontSize: '0.7rem' }}>(Refundable)</span></span>
+                          <span style={{ color: '#a5b4fc', fontWeight: 600 }}>₹{(app.market_value * 0.20).toLocaleString()} <span style={{ fontSize: '0.68rem' }}>(Refundable)</span></span>
                         </div>
                       </div>
 
                       <div style={{ marginTop: 'auto', display: 'flex', gap: '0.75rem' }}>
                         <button
-                          onClick={() => setSelectedAppliance(app)}
+                          onClick={() => {
+                            setSelectedAppliance(app);
+                            setModalPlan(cardPlanSelections[app.id] || 'daily');
+                            setModalDuration((cardPlanSelections[app.id] || 'daily') === 'daily' ? 3 : 1);
+                          }}
                           className="btn btn-secondary"
-                          style={{ flex: 1, fontSize: '0.85rem' }}
+                          style={{ flex: 1, fontSize: '0.82rem' }}
                         >
-                          <Eye size={16} /> Details
+                          <Eye size={15} /> Details
                         </button>
                         <button
-                          onClick={() => addToCart(app.id, 'monthly', 1)}
+                          onClick={() => {
+                            const chosen = cardPlanSelections[app.id] || 'daily';
+                            const dur = chosen === 'daily' ? 3 : 1;
+                            addToCart(app.id, chosen, dur);
+                          }}
                           className="btn btn-primary"
-                          style={{ flex: 1, fontSize: '0.85rem' }}
+                          style={{ flex: 1.2, fontSize: '0.82rem' }}
                         >
-                          <ShoppingBag size={16} /> Rent Now
+                          <ShoppingBag size={15} /> Rent {(cardPlanSelections[app.id] || 'daily') === 'daily' ? '3 Days' : (cardPlanSelections[app.id] || 'daily') === 'weekly' ? '1 Week' : '1 Month'}
                         </button>
                       </div>
 
@@ -1027,6 +1102,49 @@ export default function App() {
                             <img src={item.image} alt={item.title} style={{ width: '65px', height: '65px', borderRadius: '8px', objectFit: 'cover' }} />
                             <div style={{ flex: 1 }}>
                               <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{item.title}</div>
+                              {/* Days Rent, Week Rent & Month Rent Options */}
+                              <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.45rem', marginBottom: '0.45rem', flexWrap: 'wrap' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => updateCartPlan('daily')}
+                                  style={{
+                                    padding: '0.28rem 0.6rem', borderRadius: '6px', fontSize: '0.73rem', fontWeight: 700,
+                                    border: '1px solid', cursor: 'pointer', transition: 'all 0.15s',
+                                    background: item.plan === 'daily' ? 'rgba(20, 184, 166, 0.25)' : 'rgba(15, 23, 42, 0.8)',
+                                    borderColor: item.plan === 'daily' ? 'var(--teal-500)' : 'var(--border-subtle)',
+                                    color: item.plan === 'daily' ? 'var(--teal-400)' : 'var(--text-muted)'
+                                  }}
+                                >
+                                  📅 Days Rent (₹{item.daily_rate || Math.round(item.unit_rate)}/day)
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => updateCartPlan('weekly')}
+                                  style={{
+                                    padding: '0.28rem 0.6rem', borderRadius: '6px', fontSize: '0.73rem', fontWeight: 700,
+                                    border: '1px solid', cursor: 'pointer', transition: 'all 0.15s',
+                                    background: item.plan === 'weekly' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(15, 23, 42, 0.8)',
+                                    borderColor: item.plan === 'weekly' ? '#6366f1' : 'var(--border-subtle)',
+                                    color: item.plan === 'weekly' ? '#a5b4fc' : 'var(--text-muted)'
+                                  }}
+                                >
+                                  📆 Weeks Rent (₹{item.weekly_rate || Math.round(item.market_value * 0.04)}/wk)
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => updateCartPlan('monthly')}
+                                  style={{
+                                    padding: '0.28rem 0.6rem', borderRadius: '6px', fontSize: '0.73rem', fontWeight: 700,
+                                    border: '1px solid', cursor: 'pointer', transition: 'all 0.15s',
+                                    background: item.plan === 'monthly' ? 'rgba(20, 184, 166, 0.25)' : 'rgba(15, 23, 42, 0.8)',
+                                    borderColor: item.plan === 'monthly' ? 'var(--teal-500)' : 'var(--border-subtle)',
+                                    color: item.plan === 'monthly' ? 'var(--teal-400)' : 'var(--text-muted)'
+                                  }}
+                                >
+                                  🗓️ Months Rent (₹{item.monthly_rate || Math.round(item.market_value * 0.08)}/mo)
+                                </button>
+                              </div>
+
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem', marginBottom: '0.25rem' }}>
                                 <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>Market Value: ₹{item.market_value.toLocaleString()}</span>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: 'rgba(15, 23, 42, 0.8)', padding: '0.2rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
@@ -1035,7 +1153,7 @@ export default function App() {
                                     onClick={() => updateCartDuration(-1)}
                                     style={{ background: 'none', border: 'none', color: 'var(--teal-400)', fontWeight: 800, cursor: 'pointer', padding: '0 4px', fontSize: '0.9rem' }}
                                   >-</button>
-                                  <span style={{ fontSize: '0.78rem', fontWeight: 700 }}>{item.duration} {item.plan}</span>
+                                  <span style={{ fontSize: '0.78rem', fontWeight: 700 }}>{item.duration} {item.plan === 'daily' ? 'Days' : item.plan === 'weekly' ? 'Weeks' : 'Months'}</span>
                                   <button
                                     type="button"
                                     onClick={() => updateCartDuration(1)}
@@ -1665,42 +1783,92 @@ export default function App() {
               ))}
             </div>
 
-            {/* Transparent Rate Card */}
-            <div style={{ background: 'rgba(15, 23, 42, 0.8)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-subtle)', marginBottom: '1.5rem' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-dim)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>
-                Rental Rate Plans (Selectable)
+            {/* Transparent Rate Card with Selectable Plans */}
+            <div style={{ background: 'rgba(15, 23, 42, 0.8)', padding: '1.15rem', borderRadius: '10px', border: '1px solid var(--border-subtle)', marginBottom: '1.5rem' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-dim)', marginBottom: '0.65rem', textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between' }}>
+                <span>Select Rental Plan</span>
+                <span style={{ color: 'var(--teal-400)' }}>Active: {modalPlan.toUpperCase()} RENT</span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
-                <div style={{ background: 'var(--bg-glass)', padding: '0.65rem', borderRadius: '6px' }}>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Daily</div>
-                  <div style={{ fontWeight: 800, color: 'var(--text-main)' }}>₹{selectedAppliance.daily_rate}/day</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.65rem', textAlign: 'center' }}>
+                <div
+                  onClick={() => { setModalPlan('daily'); setModalDuration(3); }}
+                  style={{
+                    padding: '0.85rem 0.5rem', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s',
+                    background: modalPlan === 'daily' ? 'rgba(20, 184, 166, 0.2)' : 'var(--bg-glass)',
+                    border: modalPlan === 'daily' ? '2px solid var(--teal-400)' : '1px solid var(--border-subtle)'
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: modalPlan === 'daily' ? 'var(--teal-400)' : 'var(--text-dim)' }}>📅 Day Rent</div>
+                  <div style={{ fontWeight: 800, fontSize: '1rem', color: modalPlan === 'daily' ? '#fff' : 'var(--text-main)', marginTop: '2px' }}>₹{selectedAppliance.daily_rate}/day</div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', marginTop: '2px' }}>Flexible short-term</div>
                 </div>
-                <div style={{ background: 'var(--bg-glass)', padding: '0.65rem', borderRadius: '6px' }}>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Weekly</div>
-                  <div style={{ fontWeight: 800, color: 'var(--text-main)' }}>₹{selectedAppliance.weekly_rate}/wk</div>
+
+                <div
+                  onClick={() => { setModalPlan('weekly'); setModalDuration(1); }}
+                  style={{
+                    padding: '0.85rem 0.5rem', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s',
+                    background: modalPlan === 'weekly' ? 'rgba(99, 102, 241, 0.2)' : 'var(--bg-glass)',
+                    border: modalPlan === 'weekly' ? '2px solid #6366f1' : '1px solid var(--border-subtle)'
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: modalPlan === 'weekly' ? '#a5b4fc' : 'var(--text-dim)' }}>📆 Week Rent</div>
+                  <div style={{ fontWeight: 800, fontSize: '1rem', color: modalPlan === 'weekly' ? '#fff' : 'var(--text-main)', marginTop: '2px' }}>₹{selectedAppliance.weekly_rate}/wk</div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', marginTop: '2px' }}>Savings vs daily</div>
                 </div>
-                <div style={{ background: 'rgba(20, 184, 166, 0.15)', border: '1px solid var(--teal-500)', padding: '0.65rem', borderRadius: '6px' }}>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--teal-400)' }}>Monthly (Popular)</div>
-                  <div style={{ fontWeight: 800, color: 'var(--teal-400)' }}>₹{selectedAppliance.monthly_rate}/mo</div>
+
+                <div
+                  onClick={() => { setModalPlan('monthly'); setModalDuration(1); }}
+                  style={{
+                    padding: '0.85rem 0.5rem', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s',
+                    background: modalPlan === 'monthly' ? 'rgba(20, 184, 166, 0.2)' : 'var(--bg-glass)',
+                    border: modalPlan === 'monthly' ? '2px solid var(--teal-400)' : '1px solid var(--border-subtle)'
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: modalPlan === 'monthly' ? 'var(--teal-400)' : 'var(--text-dim)' }}>🗓️ Month Rent</div>
+                  <div style={{ fontWeight: 800, fontSize: '1rem', color: modalPlan === 'monthly' ? '#fff' : 'var(--text-main)', marginTop: '2px' }}>₹{selectedAppliance.monthly_rate}/mo</div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', marginTop: '2px' }}>Best value / month</div>
                 </div>
               </div>
 
+              {/* Duration selector inside modal */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', background: 'rgba(15, 23, 42, 0.6)', padding: '0.65rem 0.85rem', borderRadius: '8px' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>
+                  Rental Duration ({modalPlan === 'daily' ? 'Days' : modalPlan === 'weekly' ? 'Weeks' : 'Months'}):
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => setModalDuration(Math.max(1, modalDuration - 1))}
+                    style={{ background: 'var(--bg-glass)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', width: '28px', height: '28px', borderRadius: '6px', cursor: 'pointer', fontWeight: 800 }}
+                  >-</button>
+                  <span style={{ fontWeight: 800, fontSize: '0.95rem', minWidth: '40px', textAlign: 'center' }}>
+                    {modalDuration} {modalPlan === 'daily' ? 'Days' : modalPlan === 'weekly' ? 'Weeks' : 'Months'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setModalDuration(modalDuration + 1)}
+                    style={{ background: 'var(--bg-glass)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', width: '28px', height: '28px', borderRadius: '6px', cursor: 'pointer', fontWeight: 800 }}
+                  >+</button>
+                </div>
+              </div>
+
+              {/* Live financial calculation preview */}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.85rem', fontSize: '0.8rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.75rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Product Market Value: <strong>₹{selectedAppliance.market_value.toLocaleString()}</strong></span>
-                <span style={{ color: '#a5b4fc' }}>Refundable Escrow Deposit (20%): <strong>₹{(selectedAppliance.market_value * 0.2).toLocaleString()}</strong></span>
+                <span style={{ color: 'var(--text-muted)' }}>Estimated Rent ({modalDuration} {modalPlan}): <strong>₹{((modalPlan === 'daily' ? selectedAppliance.daily_rate : modalPlan === 'weekly' ? selectedAppliance.weekly_rate : selectedAppliance.monthly_rate) * modalDuration).toLocaleString()}</strong></span>
+                <span style={{ color: '#a5b4fc' }}>Escrow Deposit (20%): <strong>₹{(selectedAppliance.market_value * 0.2).toLocaleString()}</strong></span>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button
                 onClick={() => {
-                  addToCart(selectedAppliance.id, 'monthly', 1);
+                  addToCart(selectedAppliance.id, modalPlan, modalDuration);
                   setSelectedAppliance(null);
                 }}
                 className="btn btn-primary"
                 style={{ width: '100%', padding: '0.85rem' }}
               >
-                Add to Cart & Proceed to Checkout
+                <ShoppingBag size={18} /> Rent for {modalDuration} {modalPlan === 'daily' ? 'Day(s)' : modalPlan === 'weekly' ? 'Week(s)' : 'Month(s)'}
               </button>
             </div>
 
