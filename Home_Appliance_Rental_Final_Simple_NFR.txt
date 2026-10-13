@@ -1,0 +1,149 @@
+Home Appliance Rental Marketplace | Final Simple NFR
+Page 1
+Home Appliance Rental Marketplace
+FINAL - Practical Non-Functional Requirements (NFR) and Core Business Rules | Version 3.0 | 13 October
+2026
+Scope: A simple, reliable, attractive rental marketplace - not an enterprise-level platform. Responsive web
+first; mobile-friendly design across phones, tablets, and laptops.
+1. Project overview
+One account can borrow appliances and list appliances for rent. Support multiple products, multiple lenders
+in a single checkout, daily/weekly/monthly rental plans, security deposits, third-party delivery, return
+inspections and dispute resolution.
+2. Confirmed business rules
+Rule
+Final decision
+Platform commission
+Fixed 15% of product market value, per booked item/rental transaction.
+Security deposit
+Fixed 20% of product market value per item; refundable subject to inspection and
+valid deductions.
+Multiple lenders
+A single cart/checkout may include products from different lenders; create separate
+lender sub-orders.
+Logistics
+Delivery and pickup outsourced to a third-party delivery app/provider.
+Duration
+Daily, weekly and monthly rentals.
+Damage and disputes
+Lender inspects returned item and proposes evidenced deductions; admin reviews
+disputed claims.
+3. Roles and essential screens
+Role
+Essential functions
+Borrower
+Browse/search/filter, product details, cart, dates, checkout, deposit tracking, active rentals,
+returns, dispute submission, profile.
+Lender
+List/edit items, upload photos, set daily/weekly/monthly rent, availability, booking approval,
+handover checklist, return inspection, earnings.
+Admin
+Dashboard, users, listing moderation, orders, refunds, dispute decisions, commission ledger,
+payout status, delivery exceptions.
+4. Rental process
+• Lender adds appliance with category, condition, market value, rental rates, photos, location/serviceability,
+deposit and availability.
+
+--- PAGE BREAK ---
+Home Appliance Rental Marketplace | Final Simple NFR
+Page 2
+• Borrower chooses items and rental dates; system checks availability for each item and reserves stock to
+avoid double booking.
+• Cart shows itemized rent, 15% market-value commission treatment, 20% deposits, logistics fees and final
+payable amount before payment.
+• Checkout creates one parent order and lender-specific sub-orders. Payment success must be confirmed
+by gateway webhook.
+• Third-party delivery/pickup requests are tracked with reference IDs, status, failure handling and proof of
+handover.
+• At return, lender uploads photos/checklist and proposes any damage or missing-item deduction. Borrower
+can accept or dispute.
+• Undisputed eligible deposit is refunded; disputed amount is held for admin review while any undisputed
+balance is released under policy.
+5. Money logic - critical decision to implement safely
+Example: market value Rs 20,000, rent Rs 2,000: commission = Rs 3,000 (15% of market value), deposit =
+Rs 4,000 (20% of market value). The deposit is not platform revenue. Because commission exceeds rent,
+the checkout must explicitly show who pays the commission and obtain consent; the app must not silently
+deduct Rs 3,000 from a Rs 2,000 lender rental payout.
+Before launch, approve whether the borrower pays commission as a separate fee, the lender pays it, or a
+defined split applies. Also finalize tax treatment, gateway charges, payout schedule, inspection deadline,
+refund timeline, cancellation fees and late-return policy. Do not promise instant refunds; actual settlement
+depends on payment provider.
+6. Deposit and damage safeguards
+• Record deposit separately from rental revenue; maintain a ledger of collection, hold, authorized
+deductions, refunds and payment references.
+• Require timestamped pre-handover and post-return photos plus condition checklist; record accessories
+and serial number where applicable.
+• Normal wear and tear is not automatically chargeable; publish a damage schedule and fair-evidence
+standard.
+• Lender cannot unilaterally finalize disputed deductions. Admin reviews evidence, records reason and
+decision, and informs both parties.
+• Use a compliant payment partner and approved fund flow for deposit collection/holding/refunds; do not
+assume the platform can operate its own escrow account.
+7. Simple but polished UX/UI
+• Modern, clean visual design with consistent spacing, strong contrast, readable typography, attractive
+appliance cards and clear product photos.
+• Mobile-first responsive layouts for Android/iPhone, tablets, MacBook and desktop; touch targets at least
+44px.
+• Home: search bar, categories, location/service area, featured items; detail: photos, availability calendar,
+rental plans, deposit and total-cost breakdown.
+
+--- PAGE BREAK ---
+Home Appliance Rental Marketplace | Final Simple NFR
+Page 3
+• Checkout: simple steps, cart grouped by lender, transparent fee breakdown, clear confirmation and
+payment state.
+• Borrower and lender dashboards share a consistent design but use role-specific navigation; visible rental
+status timeline and refund status.
+• Accessibility: keyboard navigation, labels, error messages, sufficient contrast and understandable
+loading/empty states.
+8. Practical non-functional targets
+Area
+Target / acceptance
+Speed
+Typical pages interactive within 3 seconds on a normal mobile connection; API p95 under 800
+ms for ordinary requests at launch.
+Availability
+Target 99.5% monthly uptime excluding planned maintenance.
+Security
+HTTPS, hashed passwords, server-side role checks, validated uploads, secure payment
+webhooks, audit logs.
+Reliability
+No double booking; idempotent payment/refund processing; retry failed delivery updates
+safely.
+Data
+Daily encrypted backups; tested restore before launch; retain records under documented
+policy.
+Privacy
+Collect minimum personal data, role-restrict access, provide privacy policy and consent.
+Compatibility
+Latest two major Chrome, Safari, Firefox, Edge versions; responsive 360px to desktop widths.
+Observability
+Error logs, payment/refund alerts, admin issue dashboard and basic uptime monitoring.
+9. Recommended affordable tech stack
+Frontend: React + TypeScript + Tailwind CSS. Backend: FastAPI or Node.js (choose one). Database:
+PostgreSQL. Image storage: managed object storage. Payment: compliant Indian payment gateway.
+Delivery: third-party provider API if available, with manual admin fallback. Hosting: a small managed
+cloud/VPS initially; scale only when traffic requires it. Mobile apps can be added later if needed; a
+responsive web/PWA is sufficient for the first release.
+10. Minimum database entities
+User, Address, ApplianceListing, AppliancePhoto, AvailabilityBlock, RentalRate, Cart, Order, OrderItem,
+LenderSubOrder, Payment, DepositLedgerEntry, DeliveryJob, HandoverEvidence, ReturnInspection,
+DamageClaim, Dispute, Refund, Payout, Notification, AuditEvent.
+11. MVP release checklist
+• Borrower and lender registration/login and secure role-aware navigation work.
+• Listing moderation, search, date selection and inventory conflict prevention work.
+• Multi-lender checkout correctly splits orders and handles partial cancellations.
+
+--- PAGE BREAK ---
+Home Appliance Rental Marketplace | Final Simple NFR
+Page 4
+• 15% market-value commission and 20% market-value deposit calculate correctly per item, with explicit
+payer allocation.
+• Payment webhook retries never create duplicate payments; refunds and payouts reconcile to ledger.
+• Delivery integration or documented manual fallback, proof of handover and pickup work.
+• Inspection evidence, borrower disputes, admin decisions and partial/full deposit refunds work.
+• Mobile/tablet/desktop layouts, basic accessibility, backups and restore test pass.
+12. Out of scope for first release
+Advanced AI recommendations, dynamic pricing, complex insurance integrations, sophisticated fraud
+scoring, microservices, native iOS/Android apps and enterprise analytics are not necessary for launch.
+Status: Core product scope and six user decisions confirmed. Fee payer, inspection time limits,
+tax/settlement mechanics and delivery provider contract remain launch-blocking policy decisions.
