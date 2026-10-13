@@ -180,6 +180,8 @@ async function runAllTests() {
       const { data: fetched } = await request(`/api/appliances/${createRes.id}`);
       assert.strictEqual(fetched.title, newAppliance.title);
       assert.strictEqual(fetched.deposit_amount, 65000 * 0.20, 'Deposit must be 20% of 65000 = 13000');
+      // Cleanup test appliance so catalog is not polluted
+      await request('/api/appliances/' + createRes.id, { method: 'DELETE' });
     }),
 
     // 6. Post-Return Inspection & Damage Deduction Studio

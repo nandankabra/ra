@@ -135,7 +135,7 @@ app.get('/api/appliances', (req, res) => {
     params.push(Number(maxPrice));
   }
 
-  sql += ' ORDER BY a.created_at DESC';
+  sql += ' ORDER BY CAST(SUBSTR(a.id, 5) AS INTEGER) ASC, a.created_at ASC';
 
   const rows = db.prepare(sql).all(...params);
   const formatted = rows.map(r => ({
@@ -199,6 +199,17 @@ app.post('/api/appliances', (req, res) => {
 
   res.status(201).json({ id, message: 'Appliance listed successfully' });
 });
+
+app.delete('/api/appliances/:id', (req, res) => {
+  const { id } = req.params;
+  try {
+    db.prepare('DELETE FROM appliances WHERE id = ?').run(id);
+    res.json({ message: 'Appliance removed', id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 // --- PRICING & CART CALCULATION ENGINE ---
 app.post('/api/calculate', (req, res) => {
