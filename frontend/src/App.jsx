@@ -44,8 +44,7 @@ export default function App() {
 
   // Cart & Calculation
   const [cart, setCart] = useState([
-    { appliance_id: 'app_1', plan: 'daily', duration: 3 },
-    { appliance_id: 'app_5', plan: 'daily', duration: 2 }
+    { appliance_id: 'app_1', plan: 'daily', duration: 3 }
   ]);
   const [cartCalculation, setCartCalculation] = useState(null);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
@@ -303,17 +302,17 @@ export default function App() {
     }
   };
 
-  // Add to cart
+  // Single product at a time rental policy
   const addToCart = (applianceId, plan = 'monthly', duration = 1) => {
-    const existingIndex = cart.findIndex(i => i.appliance_id === applianceId);
-    if (existingIndex > -1) {
-      const updated = [...cart];
-      updated[existingIndex].duration += duration;
-      setCart(updated);
-    } else {
-      setCart([...cart, { appliance_id: applianceId, plan, duration }]);
-    }
+    // Strictly 1 product at a time
+    setCart([{ appliance_id: applianceId, plan, duration }]);
     setActiveTab('cart');
+  };
+
+  const updateCartDuration = (delta) => {
+    if (!cart.length) return;
+    const newDuration = Math.max(1, cart[0].duration + delta);
+    setCart([{ ...cart[0], duration: newDuration }]);
   };
 
   const removeFromCart = (index) => {
@@ -677,7 +676,7 @@ export default function App() {
                   borderBottom: activeTab === 'cart' ? '2px solid var(--teal-400)' : '2px solid transparent'
                 }}
               >
-                Cart & Transparent Breakdown ({cart.length})
+                Booking Cart ({cart.length} item)
               </button>
             </>
           )}
@@ -990,7 +989,10 @@ export default function App() {
           {currentRole === 'borrower' && activeTab === 'cart' && (
             <div style={{ maxWidth: '960px', margin: '0 auto' }}>
               <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <ShoppingBag size={24} color="var(--teal-400)" /> Multi-Lender Cart & Cost Breakdown
+                <ShoppingBag size={24} color="var(--teal-400)" /> Rental Booking & Cost Breakdown
+                <span className="badge badge-teal" style={{ fontSize: '0.72rem', padding: '0.2rem 0.6rem', marginLeft: '0.5rem' }}>
+                  1 Product per Booking Policy
+                </span>
               </h2>
 
               {cart.length === 0 ? (
@@ -1025,8 +1027,21 @@ export default function App() {
                             <img src={item.image} alt={item.title} style={{ width: '65px', height: '65px', borderRadius: '8px', objectFit: 'cover' }} />
                             <div style={{ flex: 1 }}>
                               <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{item.title}</div>
-                              <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
-                                Duration: {item.duration} {item.plan} • Market Value: ₹{item.market_value.toLocaleString()}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem', marginBottom: '0.25rem' }}>
+                                <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>Market Value: ₹{item.market_value.toLocaleString()}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: 'rgba(15, 23, 42, 0.8)', padding: '0.2rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => updateCartDuration(-1)}
+                                    style={{ background: 'none', border: 'none', color: 'var(--teal-400)', fontWeight: 800, cursor: 'pointer', padding: '0 4px', fontSize: '0.9rem' }}
+                                  >-</button>
+                                  <span style={{ fontSize: '0.78rem', fontWeight: 700 }}>{item.duration} {item.plan}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => updateCartDuration(1)}
+                                    style={{ background: 'none', border: 'none', color: 'var(--teal-400)', fontWeight: 800, cursor: 'pointer', padding: '0 4px', fontSize: '0.9rem' }}
+                                  >+</button>
+                                </div>
                               </div>
                               <div style={{ fontSize: '0.78rem', color: 'var(--teal-400)', marginTop: '0.2rem' }}>
                                 Rent: ₹{item.rent_amount.toLocaleString()} | Fee: ₹{item.commission_amount.toLocaleString()} | Deposit: ₹{item.deposit_amount.toLocaleString()}
